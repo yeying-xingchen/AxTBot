@@ -68,9 +68,8 @@ async def check_server():
     return result
 
 
-
 # ------------------快速设置------------------
-sv_api = "https://api.uapis.cn/minecraft/status?address="
+sv_api = "https://api.bluesdawn.top/minecraft/server/api?"
 error_no200 = "请求出错，请检查服务器是否在线！"  # 请求失败时的提示
 error_notaprotocol = "请求出错，不是可用的类型！可用类型为java/be"  # 当protocol字段不是java或be时的提示
 # ------------------快速设置结束-----------------
@@ -78,7 +77,7 @@ error_notaprotocol = "请求出错，不是可用的类型！可用类型为java
 # ------------------主程序------------------
 async def get_mcserver_info(msg):
     # 消息分段处理
-    address = msg.split()[1].split(':')[0]
+    address = 'host=' + msg.split()[1].split(':')[0]
     port = '25565'
     if ':' in msg.split()[1]:
         port = msg.split()[1].split(':')[1]
@@ -95,9 +94,9 @@ async def get_mcserver_info(msg):
     # 使用aiohttp进行异步请求
     try:
         async with aiohttp.ClientSession() as session:
-            async with session.get(url, timeout=15) as response: # type: ignore
+            async with session.get(url, timeout=30) as response:
                 if response.status == 200:
-                    data = await response.json()
+                    data = await response.json(content_type=None)
                     return await create_text(data) # 构造消息
                 else:
                     return error_no200
@@ -111,10 +110,13 @@ async def get_mcserver_info(msg):
 
 # ------------------构造消息------------------
 async def create_text(data):
-    description = data['response'].get('description', '空')
-    players_online = data['response']['players'].get('online', '未知')
-    players_max = data['response']['players'].get('max', '未知')
-    version = data['response']['version'].get('name', '未知')
+    status = data['status']
+    if status == 'Offline':
+        return '''很抱歉，您所查询的服务器不在线！'''
+    description = data['motd'].get('clean', '空')
+    players_online = data['players'].get('online', '未知')
+    players_max = data['players'].get('max', '未知')
+    version = data['version'].get('version', '未知')
     if not isinstance(description, str):
         description = str(description)
     # 处理描述中的特殊字符和颜色代码（例如 §a, §c等）
