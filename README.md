@@ -1,10 +1,20 @@
 # AxTBot-v2
 
-*tips.这个框架我一共才花了几天时间写出来，稳定性待测试，史山也是指定会有的，轻喷*
+
+## 许可 | LICENSE
+
+> "本代码采用AGPLv3授权。**禁止任何企业直接使用此代码于商业产品/服务**。  
+> 但欢迎开发者：  
+> - ✅ 学习代码思路  
+> - ✅ 用独立代码实现类似功能（无论是否开源）  
+> - ✅ 非商业场景下使用/修改本代码  
+> 企业需商业使用？请联系作者获取例外许可。"
+
+*注意：独立实现指未引用本项目中任何源代码，且未侵犯著作权的新创作。*
 
 <br />
 
-## 使用文档
+## 使用文档 | Usage
 - [AxTBot-v2 | AxT Docs](https://docs.axtn.net/AxTBot-v2/)
 
 ## Hypixel查询注意事项:
@@ -18,7 +28,7 @@ Hypixel查询是基于 **[Spelako](https://github.com/Spelako)** 项目修改而
 
 <br />
 
-## 快速开始
+## 快速开始 | Quick Start
 
 1. 下载源码
 
@@ -46,12 +56,12 @@ D:\AxTBot> <虚拟环境文件夹>\Scripts\Activate
 (venv) D:\AxTBot> py main.py
 ```
 
-## 注意事项
+## 注意事项 | Attention
 1. 日志并非即时更改，所以框架刚开机时日志文件为空，将在后续版本中解决该问题
 
 2. 由于设定问题，目前每次接收消息后均会reload一次插件，可能导致不必要的性能开销，将在未来的版本中解决该问题
 
-## 快速开发
+## 快速开发 | Develop
 
 本节详阅[快速开发 - AxTBot-v2 | AxT Docs](https://docs.axtn.net/AxTBot-v2/Developer/)
 
