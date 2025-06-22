@@ -1,77 +1,97 @@
+
 # AxTBot-v2
 
+一个基于 Python 的可扩展 Bot 框架。
+📖 完整文档请访问：[AxTBot-v2 | AxT Docs](https://docs.axtn.net/AxTBot-v2/)
 
-## 许可 | LICENSE
+---
 
-> "本代码采用AGPLv3授权。**禁止任何企业直接使用此代码于商业产品/服务**。  
-> 但欢迎开发者：  
-> - ✅ 学习代码思路  
-> - ✅ 用独立代码实现类似功能（无论是否开源）  
-> - ✅ 非商业场景下使用/修改本代码  
-> 企业需商业使用？请联系作者获取例外许可。"
+## 📜 许可 | License
 
-*注意：独立实现指未引用本项目中任何源代码，且未侵犯著作权的新创作。*
+> 本项目采用 **AGPLv3** 协议授权。
+> **禁止任何企业直接将本代码用于商业产品或服务。**
+> 但欢迎以下行为：
+>
+> * ✅ 学习代码思路
+> * ✅ 独立实现类似功能（无论是否开源）
+> * ✅ 在非商业场景下使用或修改本项目
+>
+> 若企业希望商业使用，请联系作者获取**例外许可**。
+>
+> *注：独立实现指未引用本项目任何源代码，且未侵犯著作权的新创作品。*
 
-<br />
+---
 
-## 使用文档 | Usage
-- [AxTBot-v2 | AxT Docs](https://docs.axtn.net/AxTBot-v2/)
+## ⚡ 快速开始 | Quick Start
 
-## Hypixel查询注意事项:
-Hypixel查询是基于 **[Spelako](https://github.com/Spelako)** 项目修改而来<br>
-此存库**只提供用于启动PHP服务器API接口的代码**，其他代码请到原存库进行获取<br>
+### 1️⃣ 下载源码
 
-### API使用方法:<br>
-1. 把 ``SpelakoCore`` 文件夹和 ``index.php`` 放在同目录下<br>
-2. 使用 ``start.bat`` 启动即可（Linux自行编写启动脚本）
-3. 默认启动在 ``0.0.0.0:30001`` ，如果端口被占用，请修改启动脚本中的端口号<br>
-
-<br />
-
-## 快速开始 | Quick Start
-
-1. 下载源码
-
-2. 创建虚拟环境(可选)
-
-在控制台中输入如下命令创建venv虚拟环境
 ```bash
-D:\AxTBot> py -m venv <文件夹名>
+git clone https://github.com/AxT-Team/AxTBot.git
 ```
 
-3. 安装依赖
+### 2️⃣ 创建虚拟环境（可选）
 
-如果你使用venv虚拟环境，那么在venv虚拟环境中安装依赖
 ```bash
-D:\AxTBot> <虚拟环境文件夹>\Scripts\Activate
-(venv) D:\AxTBot> pip install -r requirements.txt
+py -m venv .venv
+.venv\Scripts\Activate
 ```
 
-4. 配置
+### 3️⃣ 安装依赖
 
-将`.env.example`文件重命名为`.env` 并填入机器人相关信息
-
-5. 运行
 ```bash
-(venv) D:\AxTBot> py main.py
+pip install -r requirements.txt
 ```
 
-## 注意事项 | Attention
-1. 日志并非即时更改，所以框架刚开机时日志文件为空，将在后续版本中解决该问题
+### 4️⃣ 配置环境变量
 
-2. 由于设定问题，目前每次接收消息后均会reload一次插件，可能导致不必要的性能开销，将在未来的版本中解决该问题
+将 `.env.example` 重命名为 `.env`，并填写你的机器人配置。
 
-## 快速开发 | Develop
+### 5️⃣ 启动 Bot
 
-本节详阅[快速开发 - AxTBot-v2 | AxT Docs](https://docs.axtn.net/AxTBot-v2/Developer/)
+```bash
+py main.py
+```
 
-*你没看错，新框架允许你自己开发插件供你自己机器人使用了（*
+---
 
-<hr>
+## 🔧 快速开发 | Developer Guide
 
-## Mirai&CQ版本已转移到以下存库(内部号)
-- https://github.com/XiaoXianHW/ATBot
-- https://github.com/AxT-Team/Ebackup
+> 没错！现在你可以为你的 Bot 自行开发插件 ✨
 
-## 旧版本(基于qq-botpy + Websocket所写的)
-- https://github.com/AxT-Team/AxTBot/blob/AxTBot-v1
+开发指南请访问：[快速开发 - AxTBot-v2 | AxT Docs](https://docs.axtn.net/AxTBot-v2/Developer/)
+
+---
+
+## ⚠ 注意事项 | Attention
+
+1. 当前日志模块并非实时记录，首次启动时日志文件可能为空。该问题将在未来版本修复。
+2. 目前每次接收消息都会重新加载插件，可能带来性能负担，未来版本将优化此行为。
+
+---
+
+## 🏷️ 其他版本迁移
+
+* 旧版本（基于 `qq-botpy` + WebSocket）：
+
+  * [https://github.com/AxT-Team/AxTBot/blob/AxTBot-v1](https://github.com/AxT-Team/AxTBot/blob/AxTBot-v1)
+ 
+* Mirai & CQ 版（已存档的上古时期ATBot仓库）：
+
+  * [https://github.com/XiaoXianHW/ATBot](https://github.com/XiaoXianHW/ATBot)
+  * [https://github.com/AxT-Team/Ebackup](https://github.com/AxT-Team/Ebackup)
+
+---
+
+## [扩展] Hypixel 查询模块 （原仓库目前已关闭，暂不提供支持）
+
+本项目中的 Hypixel 查询功能基于 [Spelako](https://github.com/Spelako) 项目进行修改。
+**本仓库仅提供用于启动 PHP 服务器 API 接口的相关代码，其他功能请前往原仓库查看。**
+
+### 🚀 启动 API 的方法：
+
+1. 将 `SpelakoCore` 文件夹与 `index.php` 放置在同一目录中
+2. 运行 `start.bat` 启动服务（Linux 用户请自行编写启动脚本）
+3. 默认监听地址为 `0.0.0.0:30001`，如端口被占用请修改启动脚本中的端口设置
+
+
