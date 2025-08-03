@@ -8,7 +8,6 @@ async def ping_handler(event):
                    "/ping [IP] [查询节点] - 查询IP地址延迟及归属地" + "\n" + \
                    "可选的查询节点有:" + "\n" + \
                    "- cn | 中国湖北十堰/电信" + "\n" + \
-                   "- hk | 中国香港/腾讯云" + "\n" + \
                    "==========================" + "\n" + \
                    "使用示例: /ping 域名/IP cn" + "\n" + \
                    "=========================="
@@ -18,23 +17,11 @@ async def ping_handler(event):
         if msg.startswith(("/ping ","ping ")) and msg.split(" ")[1] is not None:
             info = checkpoint = None
             try:
-                node = msg.split(" ")[2]
-            except IndexError:
-                node = 'cn'
-            if node == "cn":
-                try:
-                    info = await get_ping_info(msg.split(" ")[1], "cn")
-                    checkpoint = "中国湖北十堰/电信"
-                except TypeError as e:
-                    await send_group_message(event.group_openid, msg_type=0, content='未查询到该IP地址', msg_id=event.msg_id)
-                    return
-            elif node == "hk":
-                try:
-                    info = await get_ping_info(msg.split(" ")[1], "hk")
-                    checkpoint = "中国香港/腾讯云"
-                except TypeError as e:
-                    await send_group_message(event.group_openid, msg_type=0, content='未查询到该IP地址', msg_id=event.msg_id)
-                    return
+                info = await get_ping_info(msg.split(" ")[1])
+                checkpoint = "中国湖北十堰/电信"
+            except TypeError as e:
+                await send_group_message(event.group_openid, msg_type=0, content='未查询到该IP地址', msg_id=event.msg_id)
+                return
             if info:
                 content = "\n=====Ping信息=====" + "\n" + \
                         "主机名: " + info["host"].replace('.',',') + "\n" + \

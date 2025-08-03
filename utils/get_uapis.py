@@ -6,11 +6,10 @@ import asyncio
 
 uapi = "api.uapis.cn"
 uapi_old = "uapis.cn"
-axtn = "api.axtn.net"
 
 
 async def get_ip_info(ip):
-    url = f"https://{uapi}/ipinfo?ip={ip}"
+    url = f"https://{uapi}/api/v1/network/ipinfo?ip={ip}"
     async with aiohttp.ClientSession() as session:
         try:
             async with session.get(url) as response:
@@ -21,13 +20,8 @@ async def get_ip_info(ip):
             return None
 
 
-async def get_ping_info(ip, node):
-    if node == "cn":
-        url = f"https://{uapi}/ping?host={ip}"
-    elif node == "hk":
-        url = f"https://{axtn}/ping?host={ip}"
-    else:
-        return None
+async def get_ping_info(ip):
+    url = f"https://{uapi}/api/v1/network/ping?host={ip}"
 
     async with aiohttp.ClientSession() as session:
         try:
@@ -40,7 +34,7 @@ async def get_ping_info(ip, node):
 
 
 async def get_whois_info(domain):
-    url = f"https://{uapi}/whois?domain={domain}"
+    url = f"https://{uapi}/api/v1/network/whois?domain={domain}&format=json"
     async with aiohttp.ClientSession() as session:
         try:
             async with session.get(url) as response:
@@ -52,11 +46,11 @@ async def get_whois_info(domain):
         except ClientError as e:
             logger.error(f"请求错误：{e}")
             info = await response.json()['error'] if "error" in response.json() else "未返回正确值"
-            return {"error": "info"}
+            return {"error": info}
 
 
 async def get_icp_info(domain):
-    url = f"https://{uapi_old}/api/icp?domain={domain}"
+    url = f"https://{uapi}/api/v1/network/icp?domain={domain}"
     async with aiohttp.ClientSession() as session:
         try:
             async with session.get(url) as response:
@@ -68,7 +62,7 @@ async def get_icp_info(domain):
 
 
 async def get_hot_list(hot_type):
-    url = f"https://{uapi_old}/api/hotlist?type={hot_type}"
+    url = f"https://{uapi}/api/v1/misc/hotboard?type={hot_type}"
     async with aiohttp.ClientSession() as session:
         try:
             async with session.get(url) as response:
@@ -92,27 +86,27 @@ async def get_answer_book():
 
 
 async def get_touch_url(qqid):
-    url = f"https://{uapi_old}/api/mt?qq={str(qqid)}"
+    url = f"https://{uapi}/api/v1/image/motou?qq={str(qqid)}"
     return url
 
 
 async def get_steamid_info(steamid):
     split_str = steamid.split(" ")
     steamid = split_str[1]  # 获取分割后的第二个子字符串
-    url = f"https://{uapi_old}/api/steamuserinfo?input={steamid}"
+    url = f"https://{uapi}/api/v1/game/steam/summary?steamid={steamid}"
     async with aiohttp.ClientSession() as session:
         try:
             async with session.get(url) as response:
                 if response.status == 200:
                     data = await response.json()
                     if data.get("code") == 200:
-                        communitystate = data.get("communitystate") if data.get("communitystate") != 'N/A' else "未知"
-                        steamID64 = data.get("steamID64") if data.get("steamID64") != 'N/A' else "未知"
-                        steamUsername = data.get("username") if data.get("username") != 'N/A' else "未知"
+                        communitystate = data.get("communityvisibilitystate") if data.get("communityvisibilitystate") != 'N/A' else "未知"
+                        steamID64 = data.get("steamid") if data.get("steamid") != 'N/A' else "未知"
+                        steamUsername = data.get("personaname") if data.get("personaname") != 'N/A' else "未知"
                         realname = data.get("realname") if data.get("realname") != 'N/A' else "未知"
-                        accountcreationdate = data.get("accountcreationdate") if data.get("accountcreationdate") != 'N/A' else "未知"
-                        lastlogoff = data.get("lastlogoff") if data.get("lastlogoff") != '1970-01-01 08:00:00' and data.get("lastlogoff") != 'N/A' else "未知"
-                        location = data.get("location") if data.get("location") != 'N/A' else "未知"
+                        accountcreationdate = data.get("timecreated_str") if data.get("timecreated_str") != 'N/A' else "未知"
+                        # lastlogoff = data.get("lastlogoff") if data.get("lastlogoff") != '1970-01-01 08:00:00' and data.get("lastlogoff") != 'N/A' else "未知"
+                        location = data.get("loccountrycode") if data.get("loccountrycode") != 'N/A' else "未知"
                         return f"""
 ====Steam账户信息====
 | 社区资料状态：{communitystate}
@@ -120,7 +114,6 @@ async def get_steamid_info(steamid):
 | 真实姓名：{realname}
 | Steam ID：{steamID64}
 | 账户创建日期：{accountcreationdate}
-| 最后下线日期：{lastlogoff}
 | 地理位置：{location}
 =====================
 """
@@ -161,12 +154,12 @@ def translate_domain_status(status_list):
 
 
 def format_hot_search(data):
-    items = data.get("data", [])[:10]
+    items = data.get("list", [])[:10]
     formatted = []
     for item in items:
         index = item.get("index", "")
         title = item.get("title", "")
-        hot = item.get("hot", None)
+        hot = item.get("hot_value", None)
         if hot:
             formatted.append(f"{index} - {title} | {hot}")
         else:

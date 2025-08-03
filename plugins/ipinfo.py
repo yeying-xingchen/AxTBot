@@ -22,13 +22,14 @@ async def ipinfo_handler(event):
             else:
                 contents = "\n=====IP信息=====" + "\n" + \
                         "IP: " + info["ip"] + "\n" + \
-                        "| 开始 IP: " + info["start_ip"] + "\n" + \
-                        "| 结束 IP: " + info["end_ip"] + "\n" + \
-                        "| 归属地: " + info["country"] + " " + info["region"] + "\n" + \
+                        "| 开始 IP: " + info["beginip"] + "\n" + \
+                        "| 结束 IP: " + info["endip"] + "\n" + \
+                        "| 归属地: " + info["region"] + "\n" + \
                         "| 纬度: " + str(info["latitude"]) + "\n" + \
                         "| 经度: " + str(info["longitude"]) + "\n" + \
-                        "| LLC: " + info["company"] + "\n" + \
-                        "| ASN: " + 'AS' + str(info["asn"]) + "\n" + \
+                        "| ISP: " + str(info["isp"]) + "\n" + \
+                        "| LLC: " + info["llc"] + "\n" + \
+                        "| ASN: " + str(info["asn"]) + "\n" + \
                         "=============="
             await send_group_message(event.group_openid, msg_type=0, content=contents, msg_id=event.msg_id)
             return

@@ -21,18 +21,18 @@ async def whois_handler(event):
                 if info in [{"error": "网络请求失败，请稍后再试。"},{"error": "SSL 证书验证失败，请稍后再试或联系管理员。"}]:
                     await send_group_message(event.group_openid, msg_type=0, content=f"请求失败，请稍后再试。\n详细信息：{info}", msg_id=event.msg_id)
                     return
-                domain_status_translated = translate_domain_status(info["domain_status"])
+                info = info["whois"]
+                domain = info["domain"]
+                domain_status_translated = translate_domain_status(domain["status"])
                 domain_status_str = "\n".join([status for status in domain_status_translated])
-                dns_str = ", ".join([dns.replace(".", ",") for dns in info["dns"]])
+                dns_str = ", ".join([dns.replace(".", ",") for dns in domain["name_servers"]])
                 content = "\n=====Whois信息=====" + "\n" + \
-                        "| 注册地址: " + info["reg_url"].replace("http://", "").replace("https://", "").replace(".",
-                                                                                                                ",") + "\n" + \
-                        "| 注册邮箱: " + info["email"].replace(".", ",") + "\n" + \
-                        "| 注册电话: " + info["phone"] + "\n" + \
-                        "| 注册公司: " + info["LLC"].replace(".", ",") + "\n" + \
-                        "| 注册日期: " + info["reg_date"].replace("T", " ").replace("Z", "") + "\n" + \
-                        "| 更新日期: " + info["updated_date"].replace("T", " ").replace("Z", "") + "\n" + \
-                        "| 过期日期: " + info["exp_date"].replace("T", " ").replace("Z", "") + "\n" + \
+                        "| 注册邮箱: " + info["registrar"]["email"].replace(".", ",") + "\n" + \
+                        "| 注册电话: " + info["registrar"]["phone"] + "\n" + \
+                        "| 注册公司: " + info["registrar"]["name"].replace(".", ",") + "\n" + \
+                        "| 注册日期: " + domain["created_date_in_time"].replace("T", " ").replace("Z", "") + "\n" + \
+                        "| 更新日期: " + domain["updated_date_in_time"].replace("T", " ").replace("Z", "") + "\n" + \
+                        "| 过期日期: " + domain["expiration_date_in_time"].replace("T", " ").replace("Z", "") + "\n" + \
                         "=====域名状态=====" + "\n" + \
                         domain_status_str + "\n" + \
                         "======DNS======" + "\n" + \
