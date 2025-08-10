@@ -16,8 +16,8 @@ with open('config.yaml', 'r', encoding='utf-8') as f:
 _config = ConfigBase(**yaml_config)
 
 if _config.Advanced.debug:
-    _config.logger.level = "DEBUG"
+    _config.Logger.level = "DEBUG"
 else:
-    _config.logger.level = _config.logger.level
+    _config.Logger.level = _config.Logger.level
 
 config = _config
