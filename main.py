@@ -1,67 +1,89 @@
-import asyncio
-from fastapi import FastAPI, Request, Depends, BackgroundTasks
-import os
-import uvicorn
-import threading
-from Core.Auth import auth
-from Core.Event import handle_event
-from Core.Logger import logger, log_level, logger_stop  # 导入日志对象和相关配置
-from Core.Config import config
+import os, threading, datetime
+from fastapi import Request
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.middleware.sessions import SessionMiddleware
+from tortoise.contrib.fastapi import register_tortoise
 
-app = FastAPI()
+from src.app import create_app
+from src.app.routes import router as main_router
+from src.app.exceptions import (
+    custom_http_exception_handler,
+    universal_exception_handler,
+)
 
-@app.post(config.path)
-async def callback(request: Request, background_tasks: BackgroundTasks, body: dict = Depends(auth.validate_callback)):
-    try:
-        data = await request.json()
-        logger.debug(data)
-        op = data.get("op")
-        event_type = data.get("t")
-        event_data = data.get("d")
+from src.Utils.Config import config  # 导入配置模块
+from src.Utils.HeartBeat import heartbeat_check_start
+from src.Utils.MessageState import AppState
 
-        if op == 13:  # 回调地址验证
-            plain_token = event_data.get("plain_token")
-            event_ts = event_data.get("event_ts")
-            signature = auth.generate_signature(plain_token, event_ts)
-            logger.debug("Callback address validation successful")
-            return {"plain_token": plain_token, "signature": signature}
-        elif op == 0:
-            background_tasks.add_task(handle_event, event_type, event_data)
-            event_id = data.get("id")
-            return {"op_code": 12, "d": {"event_id": event_id, "status": 0, "message": "success"}}
-    except Exception as e:
-        logger.error(f"Error processing callback: {e}")
-        return {"status": "error"}
+APP_START_TIME = datetime.datetime.now()
+AppState.set_start_time(APP_START_TIME)
+app = create_app()
+register_tortoise(
+    app,
+    config=config.Database.TORTOISE_ORM,
+    generate_schemas=True,  # 自动创建表结构
+    add_exception_handlers=True,  # 添加数据库异常处理
+)
+app.include_router(main_router)
+app.add_exception_handler(StarletteHTTPException, custom_http_exception_handler)
+app.add_exception_handler(Exception, universal_exception_handler)
+
+uvicorn_config = {
+    "app": "main:app",
+    "host": config.Network.host,
+    "port": config.Network.port,
+    "log_config": None,
+    "ssl_keyfile": config.Network.ssl_path + "/key.pem" if config.Network.ssl else None,
+    "ssl_certfile": config.Network.ssl_path + "/cert.pem" if config.Network.ssl else None
+}
 
 
-def run_uvicorn():
-    """启动 FastAPI 应用的函数"""
-    logger.info("正在启动 FastAPI 应用...")
-    uvicorn.run(
-        app,
-        host=config.ip,
-        port=config.port,
-        ssl_certfile=config.ssl_cert,
-        ssl_keyfile=config.ssl_key,
-        log_config=None,  # 禁用 Uvicorn 默认日志配置
-        log_level=log_level,  # 设置 Uvicorn 的日志级别
-    )
+app.add_middleware(SessionMiddleware, secret_key=config.Advanced.session_secret)
+@app.middleware("http")
+async def session_middleware(request: Request, call_next):
+    # 初始化会话
+    if not hasattr(request.state, "session"):
+        request.state.session = {}
 
+    response = await call_next(request)
+    return response
 
 if __name__ == "__main__":
-    try:
-        # 启动令牌刷新线程
-        logger.info("正在启动令牌刷新线程...")
-        token_refresh_thread = threading.Thread(target=auth.start_token_refresh, daemon=True)
-        token_refresh_thread.start()
-        logger.debug(f'框架 >>> 加载配置项：{config}')
-        # 启动 FastAPI 应用
-        run_uvicorn()
-    except KeyboardInterrupt:
-        logger.info("Ctrl + C 被按下，正在关机...")
-        logger.info('框架 >>> 正在关闭日志记录器...')
-        asyncio.run(logger_stop())
-        os._exit(0)
-    except Exception as e:
-        logger.error(f"未知错误: {e}")
-        raise e
+    if not os.path.exists("data"):
+        os.mkdir("data")
+    import uvicorn
+    from src.Utils.Logger import logger
+    if config.Advanced.debug:
+        logger.debug("Debug模式已启用，应用将以调试模式运行")
+        logger.warning("请不要将此模式用于生产环境，请勿将截图提供给任何陌生人")
+        
+        # 调试模式特有配置
+        uvicorn_config.update({
+            "reload": True,
+            "log_level": "debug"  # 使用debug级别的日志记录
+        })
+    else:
+        # 非调试模式证书检查
+        # 调整条件顺序：先检查SSL开关
+        if config.Network.ssl:
+            # 任意一个文件不存在则触发错误
+            key_path = os.path.join(config.Network.ssl_path, "key.pem")
+            cert_path = os.path.join(config.Network.ssl_path, "cert.pem")
+            if not os.path.exists(key_path) or not os.path.exists(cert_path):
+                logger.error(f"SSL证书缺失！请确保目录中存在cert.pem和key.pem: {config.Network.ssl_path} (err:-56)")
+                exit(-56)
+        
+        # 生产模式特有配置
+        uvicorn_config.update({
+            "reload": False,
+            "log_level": config.Logger.level.lower()  # 使用配置文件中的日志级别
+        })
+    if config.Network.ssl:
+        logger.info("SSL已启用，应用将使用HTTPS协议")
+        logger.debug(f"程序启动时间: {APP_START_TIME}")
+    else:
+        logger.warning("SSL未启用，应用将使用HTTP协议")
+        logger.warning("请注意：HTTP协议下，开放平台无法发包至本框架，造成消息不可达，请在生产环境中启用SSL")
+    logger.info("正在启动守护线程...")
+    threading.Thread(target=heartbeat_check_start, daemon=True, name="心跳检查线程").start()
+    threading.Thread(target=uvicorn.run(**uvicorn_config), daemon=False, name="Uvicorn主线程").start() # 启动Uvicorn服务器

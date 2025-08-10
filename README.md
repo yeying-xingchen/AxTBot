@@ -1,13 +1,13 @@
 
-# AxTBot-v2
+# AxTBot-v2.1
 
 一个基于 Python 的可扩展 Bot 框架。
-📖 完整文档请访问：[AxTBot-v2 | AxT Docs](https://docs.axtn.net/AxTBot-v2/)
+📖 完整文档请访问：[AxTBot-v2 | AxT Docs](https://docs.axtn.net/AxTBot-v2.1/)
 
 ---
 
 > [!CAUTION]
-> ⚠️ 本项目功能开发已完成，目前已进入长周期（LTS）状态。若有新问题请提交issue。
+> ⚠️ 当前分支正在进行上线测试，可能存在问题。若存在问题请立即报告给管理员。
 
 ---
 
@@ -29,7 +29,7 @@
 
 ## ⚡ 快速开始 | Quick Start
 
-### 1️⃣ 下载源码
+### 1️⃣ 下载源码（或从Release下载Source Code.zip）
 
 ```bash
 git clone https://github.com/AxT-Team/AxTBot.git
@@ -45,12 +45,12 @@ py -m venv .venv
 ### 3️⃣ 安装依赖
 
 ```bash
-pip install -r requirements.txt
+pip install -e .
 ```
 
 ### 4️⃣ 配置环境变量
 
-将 `.env.example` 重命名为 `.env`，并填写你的机器人配置。
+打开`config.yaml`，并按照指示填写你的机器人配置。
 
 ### 5️⃣ 启动 Bot
 
@@ -64,18 +64,20 @@ py main.py
 
 > 没错！现在你可以为你的 Bot 自行开发插件 ✨
 
-开发指南请访问：[快速开发 - AxTBot-v2 | AxT Docs](https://docs.axtn.net/AxTBot-v2/Developer/)
+开发指南请访问：[快速开发 - AxTBot-v2 | AxT Docs](https://docs.axtn.net/AxTBot-v2.1/Developer/)
 
 ---
 
 ## ⚠ 注意事项 | Attention
 
-1. 当前日志模块并非实时记录，首次启动时日志文件可能为空。该问题将在未来版本修复。
-2. 目前每次接收消息都会重新加载插件，可能带来性能负担，未来版本将优化此行为。
+1. Advance - Debug模式打开后 可能会导致log重复生成，系重载进程导致，将尝试在日后版本修复
 
 ---
 
 ## 🏷️ 其他版本迁移
+
+* v2版本：
+  [AxTBot-v2](https://github.com/AxT-Team/AxTBot/blob/AxTBot-v2)
 
 * 旧版本（基于 `qq-botpy` + WebSocket）：
 

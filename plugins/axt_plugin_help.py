@@ -1,7 +1,16 @@
-from Core.Event import group_handle_event, send_group_message
+from src.Utils.PluginBase import command
+from src.Utils.EventClass import MessageEventPayload
 
-@group_handle_event('/help', '/help ', 'help', 'help ')
-async def help_handler(event):
+__metadata__ = {
+    "name": "[官方插件]帮助插件",
+    "version": "1.0.0",
+    "author": "AxT-Team",
+    "description": "获取帮助菜单"
+}
+
+
+@command(["help", "/help"])
+async def help_handler(event: MessageEventPayload):
     content = "\n=======AxT社区机器人=======" + "\n" + \
                    "| help | - 获取帮助菜单" + "\n" + \
                    "| ping | - 显示Ping菜单" + "\n" + \
@@ -15,5 +24,5 @@ async def help_handler(event):
                    "===============" + "\n" + \
                    "官方社区群: 832275338" + "\n" + \
                    "===============" + "\n" + \
-                   "AxTBot Public v 2.0"
-    await send_group_message(event.group_openid, msg_type=0, content=content, msg_id=event.msg_id)
+                   "AxTBot Public v 2.1"
+    await event.reply(content)

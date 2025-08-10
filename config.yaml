@@ -1,0 +1,76 @@
+Bot:       # 机器人的相关信息
+  qq: 1234567890   # 机器人QQ号
+  appid: 123456789 # 机器人APPID
+  token: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX     # 机器人TOKEN
+  appsecret: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX # 机器人APPSECRET
+
+
+Network:   # 框架网络配置
+  host: 0.0.0.0    # 监听地址
+  port: 8080       # 监听端口
+  path: /webhook   # Webhook路径
+
+  ssl: true        # 是否启用SSL证书
+  ssl_path: data   # 证书存放路径 会自动在该路径下寻找*.pem文件 
+                   # 请确保存在公钥和私钥（两个文件 公钥 cert.pem 私钥 key.pem）
+
+  webui: false     # 是否启用WebUI
+                   # 请注意：启动WebUI后，请使用AxT提供的后台登陆服务（或您可以自行前往我们的公开存库中下载前端源码）
+                   # WebUI也会与Webhook的端口号一致
+
+
+Logger:    # 日志配置
+  level: INFO      # 日志等级 可选INFO DEBUG WARNING ERROR
+                   # 请注意：DEBUG日志会输出当前框架的配置信息以及相关的重要信息
+                   # 请勿将DEBUG日志用于生产环境 请勿将截图发送给他人
+  dir: logs        # 日志保存目录 默认为logs
+  uvicorn: false   # 是否启用uvicorn日志 启用后会输出连接发起信息
+                   # 例如 127.0.0.1:8080 - "GET /api/v1/users/me HTTP/1.1" 200 12345
+  log_split: false # 是否启用日志分割 不启用则以下设置均不可用
+  max_size: 10     # 日志文件大小 单位MB
+  backup_count: 3  # 日志文件保存个数（每次分割时的旧文件数量）
+
+
+Notice:    # 通知
+  enable: true     # 是否启用邮件推送通知（若框架出现问题、无法回应数据包5次会发送邮件通知）
+                   # 用于通过邮件通知管理员 防止无人值守现象
+  host: smtp.xxxx.com       # 邮件服务器
+  port: 666                 # 邮件服务器端口
+  sender: example@xxxx.com  # 发送邮箱
+  password: SECRET          # SMTP发送密码
+  receiver:                 # 接收者邮箱列表
+    - admin@xxxx.com
+
+
+Plugins:   # 插件设置
+  dir: plugins              # 插件目录
+
+
+Advanced:  # 高级设置
+  debug: false              # 是否启用调试模式 请注意 调试模式下日志会被强制锁定为DEBUG模式
+  update: true              # 是否启用检查更新 启用后会在框架开机时检查当前框架和AxT-Team/AxTBot的版本
+  session_secret: xxxxxxxxxxxxxxxxxxxxxxxx
+                            # session密钥 用于校验WebUI登录态 不启用WebUI时默认无效
+                            # 请确保其为强密钥 泄露可能造成加密问题
+  
+
+Database:  # 数据库配置
+           # 注意：除非您了解tortoise for FastAPI的数据结构 否则请勿乱动
+    connections:
+      default: sqlite://data/web_user.db
+      message: sqlite://data/message.db
+      messagesent: sqlite://data/message_sent.db
+    apps:
+      models:
+        models:
+        - src.Utils.Database
+        - aerich.models
+        default_connection: default
+      message:
+        models:
+        - src.Utils.EventSender
+        default_connection: message
+      messagesent:
+        models:
+        - src.Utils.EventSender
+        default_connection: messagesent

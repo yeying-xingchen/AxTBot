@@ -1,15 +1,19 @@
 # 运行时缓存文件
 __pycache__
-Core/__pycache__
-plugins/__pycache__
-utils/__pycache__
+src/app/__pycache__
+src/Utils/__pycache__
 
 # 数据文件
 data/*.pem
 data/*.db
+data/*.db-wal
+data/*.db-shm
 
 # 运行时日志文件
 logs
 
 # 运行时目录
 .venv
+
+# 操作记录
+.vscode
