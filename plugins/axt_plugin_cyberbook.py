@@ -15,7 +15,7 @@ __metadata__ = {
 
 @command(["ask", "/ask"])
 async def ask_handler(event: MessageEventPayload):
-    url = f"https://api.uapis.cn/api/v1/answerbook/ask"
+    url = f"https://uapis.cn/api/v1/answerbook/ask"
     async with aiohttp.ClientSession() as session:
         try:
             async with session.post(url) as response:

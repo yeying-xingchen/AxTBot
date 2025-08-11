@@ -2,7 +2,7 @@
 # AxTBot-v2.1
 
 一个基于 Python 的可扩展 Bot 框架。
-📖 完整文档请访问：[AxTBot-v2 | AxT Docs](https://docs.axtn.net/AxTBot-v2.1/)
+📖 完整文档请访问：[AxTBot-v2 | AxT Docs](https://docs.axtn.net/axtbot/v2.1/)
 
 ---
 
@@ -64,7 +64,7 @@ py main.py
 
 > 没错！现在你可以为你的 Bot 自行开发插件 ✨
 
-开发指南请访问：[快速开发 - AxTBot-v2 | AxT Docs](https://docs.axtn.net/AxTBot-v2.1/Developer/)
+开发指南请访问：[快速开发 - AxTBot-v2 | AxT Docs](https://docs.axtn.net/axtbot/v2.1/Developer/)
 
 ---
 
