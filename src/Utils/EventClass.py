@@ -97,6 +97,8 @@ class QQBasePayload:
             "MESSAGE_CREATE",
             "AT_MESSAGE_CREATE",
             "DIRECT_MESSAGE_CREATE",
+            "C2C_MESSAGE_CREATE",
+            "GROUP_AT_MESSAGE_CREATE",
         ]
 
     @staticmethod
@@ -204,7 +206,7 @@ class AttrDict:
 
 class MessageEventPayload(QQBasePayload):
     """消息体事件"""
-    
+
     @property
     def event_type(self) -> str:
         """(转中文)事件类型"""
@@ -235,6 +237,8 @@ class MessageEventPayload(QQBasePayload):
         base_content = self.d.get("content", "")
         if self.event_type == "频道艾特":
             base_content = base_content.replace(f"<@!13449081469700666290>", "")
+        while base_content.startswith(" "):  # 去掉开头的空格
+            base_content = base_content[1:]
         attachments = self.attachments
         if not attachments or (isinstance(attachments, AttrDict) and not attachments.to_dict()):
             return base_content
@@ -302,11 +306,13 @@ class MarkdownPayload:
     """
     def __init__(self, payload: Optional[Dict] = None):
         self._payload = payload or {}
-        self.content: str = self._payload.get('content', '')
+        self.content: str = self._payload.get('content', None)
         self.custom_template_id: str = self._payload.get('custom_template_id', '')
         self.params: Dict[str, List[str]] = self._payload.get('params', {})
     
     def to_dict(self) -> Dict[str, Any]:
+        if not self.custom_template_id:
+            return None
         return {
             'content': self.content,
             'custom_template_id': self.custom_template_id,
@@ -339,6 +345,7 @@ class KeyboardPayload:
         self.rows: List[Dict] = self.content.get('rows', [])
     
     def to_dict(self) -> Dict[str, Any]:
+        if not self.rows: return None
         return {
             'content': {
                 'rows': self.rows
@@ -359,6 +366,7 @@ class ArkPayload:
         self.kv: List[Dict] = self._payload.get('kv', [])
     
     def to_dict(self) -> Dict[str, Any]:
+        if not self.template_id: return None
         return {
             'template_id': self.template_id,
             'kv': self.kv
@@ -374,6 +382,7 @@ class MediaPayload:
         self.id: str = self._payload.get('id', '')
     
     def to_dict(self) -> Dict[str, Any]:
+        if not self.file_info: return None
         return {
             'file_uuid': self.file_uuid,
             'file_info': self.file_info,
@@ -387,15 +396,24 @@ class MediaUploadPayload:
     - file_type: int 1图片 2视频 3语音 4文件（不开放） 默认1
     - url: str 媒体资源URL
     - srv_send_msg: bool True会用主动方式发送 默认False
+    - event: MessageEventPayload 事件对象 用于获取发送目标
 
     详见：https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/send-receive/rich-media.html
+
+    Powered by AxTn Network 2023-2025
     """
-    def __init__(self, payload: Optional[Dict] = None):
-        self._payload = payload or {}
-        self.file_type: int = self._payload.get('file_type', 1)
-        self.url: str = self._payload.get('url', '')
-        self.srv_send_msg: bool = self._payload.get('srv_send_msg', False)
-    
+    def __init__(
+        self,
+        file_type: int = 1,
+        url: str = None,
+        srv_send_msg: bool = False,
+        event: MessageEventPayload = None,
+    ):
+        self.file_type: int = file_type
+        self.url: str = url
+        self.srv_send_msg: bool = srv_send_msg
+        self.event: Union[MessageEventPayload, GroupMessageEvent] = event
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             'file_type': self.file_type,
@@ -418,16 +436,46 @@ class AutoReplyPayload:
         self.channel_id = event.channel_id if hasattr(event, 'channel_id') else None
         self.guild_id = event.guild_id if hasattr(event, 'guild_id') else None
         self.user_id = event.user_id if hasattr(event, 'user_id') else None
-        
+        self.markdown: MarkdownPayload = None
+        self.ark: ArkPayload = None
+        self.media: MediaPayload = None
+        self.event_id: str = None
+
     def set_content(self, content):
         self.content = content
         return self
 
+    def set_markdown(self, markdown: MarkdownPayload = None):
+        self.markdown = markdown
+        return self
+
+    def set_ark(self, ark: ArkPayload = None):
+        self.ark = ark
+        return self
+
+    def set_media(self, media: MediaPayload = None):
+        self.media = media
+        return self
+
+
 class MessageSenderBasePayload:    
     def __init__(self, payload: Union[Dict[str, Any], str] = None):
         """
-        初始化Payload
+        Payload基本格式规范
+
+        详见 https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/send-receive/send.html
+
         :param payload: 可以是字典、JSON字符串或None（创建空对象）
+        :param payload.msg_type: 消息类型 默认0文本 2markdown 3ark 4embed 7富媒体
+        :param payload.event_id: 事件ID
+        :param payload.msg_id: 消息ID
+        :param payload.msg_seq: 消息序列号
+        :param payload.markdown: Markdown消息体
+        :param payload.keyboard: 按钮消息体
+        :param payload.ark: Ark消息体
+        :param payload.media: 媒体消息体
+
+        Powered by [AxTn Network](https://www.axtrk.com) 2023-2025
         """
         if payload is None:
             self._raw_data = {}  # 支持创建空对象
@@ -435,20 +483,18 @@ class MessageSenderBasePayload:
             self._raw_data = json.loads(payload)
         else:
             self._raw_data = payload or {}
-        
-        # 基础字段 - 支持直接点号赋值
+
         self.content: str = self._raw_data.get('content', '')
         self.msg_type: int = self._raw_data.get('msg_type', 0)
         self.event_id: str = self._raw_data.get('event_id', '')
         self.msg_id: str = self._raw_data.get('msg_id', '')
         self.msg_seq: int = self._raw_data.get('msg_seq', 1)
-        
-        # 嵌套对象 - 支持直接点号赋值
+
         self.markdown: MarkdownPayload = MarkdownPayload(self._raw_data.get('markdown'))
         self.keyboard: KeyboardPayload = KeyboardPayload(self._raw_data.get('keyboard'))
         self.ark: ArkPayload = ArkPayload(self._raw_data.get('ark'))
         self.media: MediaPayload = MediaPayload(self._raw_data.get('media'))
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """将对象转换为字典"""
         result = {
@@ -457,9 +503,8 @@ class MessageSenderBasePayload:
             'msg_id': self.msg_id,
             'msg_seq': self.msg_seq
         }
-        
-        # 添加嵌套对象（如果它们有数据）
-        if self.markdown.content or self.markdown.custom_template_id:
+
+        if self.markdown:
             result['markdown'] = self.markdown.to_dict()
         if self.event_id:
             result['event_id'] = self.event_id
@@ -469,7 +514,7 @@ class MessageSenderBasePayload:
             result['ark'] = self.ark.to_dict()
         if self.media.file_uuid:
             result['media'] = self.media.to_dict()
-            
+
         return result
 
 class MessageSenderOverPayload:
@@ -497,29 +542,15 @@ class GuildMessageEvent(MessageEventPayload):
     def is_direct_message(self) -> bool:
         """是否是私信消息"""
         return self.t == "DIRECT_MESSAGE_CREATE"
-    
-    async def reply(self, content: str):
+    async def reply(self, content: str, markdown: MarkdownPayload = None, msg_id: str = None, ark: ArkPayload = None):
         """快捷回复方法"""
         auto_payload = AutoReplyPayload(self, self.t == "DIRECT_MESSAGE_CREATE").set_content(content)
+        if markdown:
+            auto_payload.set_markdown(markdown)
+        if ark:
+            auto_payload.set_ark(ark)
         from src.Utils.MessageSender import send_auto_reply
         await send_auto_reply(auto_payload)
-    
-class GuildEvent(QQBasePayload):
-    """频道管理事件处理"""
-    def __init__(self, data: Union[Dict, str]):
-        # 调用父类初始化链
-        super().__init__(data)
-        owner_id = self.d.get("owner_id", "")
-        guide_name = self.d.get("name", "")
-        if self.t == "GUILD_UPDATE":
-            logger.info(f"频道更新 | 频道ID：{self.guild_id} | 频道主ID：{owner_id} | 频道名称：{guide_name}")
-        if self.t == "GUILD_CREATE":
-            logger.info(f"频道创建 | 频道ID：{self.guild_id} | 频道主ID：{owner_id} | 频道名称：{guide_name}")
-        if self.t == "GUIDE_DELETE":
-            logger.info(f"频道删除 | 频道ID：{self.guild_id} | 频道主ID：{owner_id} | 频道名称：{guide_name}")
-    @property
-    def guild_id(self) -> str:
-        return self.d.get("guild_id", "")
 
 class GroupMessageEvent(MessageEventPayload):
     """群消息事件处理"""
@@ -531,9 +562,15 @@ class GroupMessageEvent(MessageEventPayload):
     def group_id(self) -> str:
         return self.d.get("group_id", "")
 
-    async def reply(self, content: str):
+    async def reply(self, content: str = None, markdown: MarkdownPayload = None, msg_id: str = None, ark: ArkPayload = None, media: MediaPayload = None):
         """快捷回复方法"""
         auto_payload = AutoReplyPayload(self).set_content(content)
+        if markdown:
+            auto_payload.set_markdown(markdown)
+        if ark:
+            auto_payload.set_ark(ark)
+        if media:
+            auto_payload.set_media(media)
         from src.Utils.MessageSender import send_auto_reply
         await send_auto_reply(auto_payload)
 
@@ -544,9 +581,15 @@ class PrivateMessageEvent(MessageEventPayload):
         super().__init__(data)
         logger.info(f"私聊消息 | 用户ID：{self.user_id} >>> {self.content}")
 
-    async def reply(self, content: str):
+    async def reply(self, content: str, markdown: MarkdownPayload = None, msg_id: str = None, ark: ArkPayload = None, media: MediaPayload = None):
         """快捷回复方法"""
         auto_payload = AutoReplyPayload(self).set_content(content)
+        if markdown:
+            auto_payload.set_markdown(markdown)
+        if ark:
+            auto_payload.set_ark(ark)
+        if media:
+            auto_payload.set_media(media)
         from src.Utils.MessageSender import send_auto_reply
         await send_auto_reply(auto_payload)
 
@@ -567,6 +610,41 @@ class ValidationEvent(QQBasePayload):
     def generate_response(self, request: Request) -> Dict[str, str]:
         """生成验证响应"""
         return QQBasePayload.generate_validation_response(request)
+
+class GroupEvent(QQBasePayload):
+    """群机器人事件处理"""
+    def __init__(self, data: Union[Dict, str]):
+        # 调用父类初始化链
+        super().__init__(data)
+        self.group_id = self.d.get("group_openid", "")
+        self.op_member_id = self.d.get("op_member_openid", "")
+        self.timestamp = self.d.get("timestamp", "")
+        self.event_id = self.id
+
+    async def reply(self, content: str, markdown: MarkdownPayload = None, msg_id: str = None, ark: ArkPayload = None, media: MediaPayload = None):
+        """快捷回复方法"""
+        auto_payload = AutoReplyPayload(self).set_content(content)
+        auto_payload.event_id = self.event_id
+        from src.Utils.MessageSender import send_auto_reply
+        await send_auto_reply(auto_payload)
+
+class GuildEvent(QQBasePayload):
+    """频道管理事件处理"""
+    def __init__(self, data: Union[Dict, str]):
+        # 调用父类初始化链
+        super().__init__(data)
+        owner_id = self.d.get("owner_id", "")
+        guide_name = self.d.get("name", "")
+        if self.t == "GUILD_UPDATE":
+            logger.info(f"频道更新 | 频道ID：{self.guild_id} | 频道主ID：{owner_id} | 频道名称：{guide_name}")
+        if self.t == "GUILD_CREATE":
+            logger.info(f"频道创建 | 频道ID：{self.guild_id} | 频道主ID：{owner_id} | 频道名称：{guide_name}")
+        if self.t == "GUIDE_DELETE":
+            logger.info(f"频道删除 | 频道ID：{self.guild_id} | 频道主ID：{owner_id} | 频道名称：{guide_name}")
+    @property
+    def guild_id(self) -> str:
+        return self.d.get("guild_id", "")
+
 
 # ====================== 工厂函数 ======================
 def create_payload(payload_data: Union[Dict, str]) -> Union[MessageEventPayload, QQBasePayload]:
@@ -597,7 +675,8 @@ def create_payload(payload_data: Union[Dict, str]) -> Union[MessageEventPayload,
             return PrivateMessageEvent(payload_dict)
         elif t in ["GUID_UPDATE", "GUILD_CREATE", "GUILD_DELETE"]:
             return GuildEvent(payload_dict)
-        # 可以添加更多事件类型的处理...
+        elif t in ["GROUP_ADD_ROBOT", "GROUP_DEL_ROBOT"]:
+            return GroupEvent(payload_dict)
 
     elif op == 13:  # 验证事件
         return ValidationEvent(payload_dict)

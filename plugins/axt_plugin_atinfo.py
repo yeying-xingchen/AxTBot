@@ -9,7 +9,8 @@ __metadata__ = {
     "name": "[官方插件]获取框架信息",
     "version": "1.0.0",
     "author": "AxT-Team",
-    "description": "获取当前框架的消息数等信息"
+    "description": "获取当前框架的消息数等信息",
+    "official": True
 }
 
 
@@ -22,10 +23,9 @@ async def get_message(event: GroupMessageEvent):
     days = elapsed_time.days
     hours, remainder = divmod(elapsed_time.seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
-    
 
     info = await get_system_info()
-    reply = "\nAxTBot Public v 2.1\n" + \
+    reply =   "AxTBot Public v 2.1\n" + \
               "===============" + "\n" + \
               "CPU: " + info["cpu_usage"] + "\n" + \
               "RAM: " + info["ram_usage"] + "\n" + \

@@ -1,13 +1,13 @@
 [project]
 name = "AxTBot-Public"
-version = "2.1.0+11455"
+version = "2.1.0+13001"
 description = "AxTBot 社区机器人是由 AxT社区 开发并维护的公共、公益性QQ官方机器人，基于QQ开放平台 ，使用 Python 和 FastAPI 构建"
 authors = [
     {name = "Shanshui2024", email = "shanshui@shanshui.site"},
 ]
 dependencies = [
     "aerich==0.9.1","aiosqlite==0.21.0","annotated-types==0.7.0","anyio==4.10.0",
-    "asyncclick==8.1.8.0","bcrypt==4.3.0","cffi==1.17.1","click==8.2.1","colorama==0.4.6",
+    "asyncclick==8.1.8.0","bcrypt==4.3.0","cffi==1.17.1","click==8.1.8","colorama==0.4.6",
     "coloredlogs==15.0.1","dictdiffer==0.9.0","fastapi==0.116.1","h11==0.16.0","humanfriendly==10.0",
     "idna==3.10","iso8601==2.1.0","itsdangerous==2.2.0","prompt-toolkit==3.0.51","pycparser==2.22",
     "pydantic==2.11.7","pydantic-core==2.33.2","PyNaCl==1.5.0","pypika-tortoise==0.6.1",
@@ -38,12 +38,9 @@ test = [
     "httpx"
 ]
 standard = [
-    "psutil"
+    "psutil",
+    "pyjwt"
 ]
-
-
-
-
 
 [tool.pytest.ini_options]
 minversion = "7.0"

@@ -21,6 +21,10 @@ def generate_config_wizard() -> ConfigBase:
                 "[必填]请输入开放平台提供的机器人QQ号:",
                 validate=validate_required,
             ).ask(),
+            "nickname": questionary.text(
+                "[可选]请输入机器人昵称:",
+                validate=validate_required,
+            ).ask(),
             "appid": questionary.text(
                 "[必填]请输入开放平台提供的机器人AppID:",
                 validate=validate_required,
@@ -137,7 +141,7 @@ def save_config(config: ConfigBase, path: Path):
     
     print(f"✅ 配置文件已生成: {path}\n请阅读以下文档：https://docs.axtn.net/AxTBot-v2.1/config/global.html 了解配置项含义")
 
-def load_config(config_path: Path) -> ConfigBase:
+async def load_config(config_path: Path) -> ConfigBase:
     """加载配置，如果不存在则引导创建"""
     # 情况1: 配置文件不存在
     if not config_path.exists():

@@ -1,13 +1,13 @@
-from fastapi import Request
+from fastapi import Request, status
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-
 
 # 错误信息映射
 ERROR_INFO = {
     404: {
         "title": "页面未找到",
-        "description": "您正在寻找的页面可能已被移除、名称已更改或暂时不可用。请检查URL是否正确，或使用下面的按钮返回安全区域。",
+        "description": "您正在寻找的页面可能已被移除、名称已更改或暂时不可用。请检查URL是否正确。",
     },
     500: {
         "title": "服务器内部错误",
@@ -27,7 +27,7 @@ ERROR_INFO = {
     },
     405: {
         "title": "方法不允许",
-        "description": "您所使用的请求方法不被允许，请点击下方按钮返回安全区域。",
+        "description": "您所使用的请求方法不被允许，请检查请求方法。",
     },
 }
 
@@ -44,11 +44,12 @@ async def universal_exception_handler(request: Request, exc: Exception):
 
     return JSONResponse(
         {
-            "status_code": status_code,
-            "error_title": error_info["title"],
-            "error_description": error_info["description"],
+            "code": status_code,
+            "data": {
+                "title": error_info["title"],
+                "description": error_info["description"],}
         },
-        status_code=status_code,
+        status_code=status_code
     )
 
 
@@ -58,9 +59,35 @@ async def custom_http_exception_handler(request: Request, exc: StarletteHTTPExce
 
     return JSONResponse(
         {
-            "status_code": status_code,
-            "error_title": error_info["title"],
-            "error_description": error_info["description"],
+            "code": status_code,
+            "data": {
+                "title": error_info["title"],
+                "description": error_info["description"]
+            }
         },
-        status_code=status_code,
+        status_code=status_code
+    )
+
+async def custom_validation_exception_handler(
+    request: Request, 
+    exc: RequestValidationError
+):
+    # 重构错误格式
+    reformatted_errors = []
+    for error in exc.errors():
+        reformatted_errors.append({
+            "field": ".".join(str(loc) for loc in error["loc"]),
+            "message": error["msg"],
+            "type": error["type"]
+        })
+    
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={
+            "code": 422,
+            "data": {
+                "title": "请求验证失败",
+                "description": "表单项不完整，请确保表单被正确地传递到后端"
+            },
+        },
     )

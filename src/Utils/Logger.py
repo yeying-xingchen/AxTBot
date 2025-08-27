@@ -8,7 +8,7 @@ colorama.init()
 
 
 # --- 常量定义 ---
-LOG_FORMAT = '[%(asctime)s][%(levelname)s] %(message)s'
+LOG_FORMAT = '[%(asctime)s][%(filename)s][%(levelname)s] %(message)s'
 DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 LOG_NAME = f'log-{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.log'
 LOG_FILENAME = os.path.join(

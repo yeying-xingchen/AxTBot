@@ -1,6 +1,7 @@
 Bot:       # 机器人的相关信息
-  qq: 1234567890   # 机器人QQ号
-  appid: 123456789 # 机器人APPID
+  qq: 1234567890            # 机器人QQ号
+  nickname: AxTBot-Public   # 机器人昵称
+  appid: 123456789          # 机器人APPID
   token: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX     # 机器人TOKEN
   appsecret: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX # 机器人APPSECRET
 
@@ -14,7 +15,7 @@ Network:   # 框架网络配置
   ssl_path: data   # 证书存放路径 会自动在该路径下寻找*.pem文件 
                    # 请确保存在公钥和私钥（两个文件 公钥 cert.pem 私钥 key.pem）
 
-  webui: false     # 是否启用WebUI
+  webui: true      # 是否启用WebUI
                    # 请注意：启动WebUI后，请使用AxT提供的后台登陆服务（或您可以自行前往我们的公开存库中下载前端源码）
                    # WebUI也会与Webhook的端口号一致
 

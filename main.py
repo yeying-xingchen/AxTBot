@@ -1,7 +1,7 @@
-import os, threading, datetime
-from fastapi import Request
+import os, threading, datetime, sys, asyncio
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
-from starlette.middleware.sessions import SessionMiddleware
 from tortoise.contrib.fastapi import register_tortoise
 
 from src.app import create_app
@@ -9,12 +9,15 @@ from src.app.routes import router as main_router
 from src.app.exceptions import (
     custom_http_exception_handler,
     universal_exception_handler,
+    custom_validation_exception_handler,
 )
 
 from src.Utils.Config import config  # 导入配置模块
 from src.Utils.HeartBeat import heartbeat_check_start
 from src.Utils.MessageState import AppState
 
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 APP_START_TIME = datetime.datetime.now()
 AppState.set_start_time(APP_START_TIME)
 app = create_app()
@@ -27,6 +30,7 @@ register_tortoise(
 app.include_router(main_router)
 app.add_exception_handler(StarletteHTTPException, custom_http_exception_handler)
 app.add_exception_handler(Exception, universal_exception_handler)
+app.add_exception_handler(RequestValidationError, custom_validation_exception_handler)
 
 uvicorn_config = {
     "app": "main:app",
@@ -38,15 +42,14 @@ uvicorn_config = {
 }
 
 
-app.add_middleware(SessionMiddleware, secret_key=config.Advanced.session_secret)
-@app.middleware("http")
-async def session_middleware(request: Request, call_next):
-    # 初始化会话
-    if not hasattr(request.state, "session"):
-        request.state.session = {}
 
-    response = await call_next(request)
-    return response
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 前端开发服务器地址
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 if __name__ == "__main__":
     if not os.path.exists("data"):
@@ -86,4 +89,10 @@ if __name__ == "__main__":
         logger.warning("请注意：HTTP协议下，开放平台无法发包至本框架，造成消息不可达，请在生产环境中启用SSL")
     logger.info("正在启动守护线程...")
     threading.Thread(target=heartbeat_check_start, daemon=True, name="心跳检查线程").start()
-    threading.Thread(target=uvicorn.run(**uvicorn_config), daemon=False, name="Uvicorn主线程").start() # 启动Uvicorn服务器
+    uvicorn.run(
+        loop="asyncio", 
+        http="httptools" if sys.platform != "win32" else "auto",
+        timeout_keep_alive=1,  # 空闲连接1秒关闭
+        timeout_graceful_shutdown=1,  # 关闭时等待1秒
+        **uvicorn_config
+    )

@@ -3,6 +3,7 @@ from typing import Optional
 
 class QQ_BOT_BaseInfo(BaseModel):
     qq: int
+    nickname: str = "QQ官方机器人"
     appid: int
     token: str
     appsecret: str

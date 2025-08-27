@@ -47,19 +47,23 @@ async def get_version_compatible():
     raise ValueError("版本号未在 pyproject.toml 中找到")
 
 async def check_update():
-    latest = await get_latest_release("AxT-Team", "AxTBot")
-    if latest:
-        logger.debug(f"版本检查 >>> 最新版本: {latest['tag']} ({latest['name']})")
-        logger.debug(f"版本检查 >>> 发布时间: {latest['published_at']}")
-        url = latest['url'].replace('%2b', '+')
-        logger.debug(f"版本检查 >>> 发布页面: {url}")
-    else:
-        logger.error("版本检查 >>> 获取最新版本失败")
-        return
-    now = await get_version_compatible()
-    if latest["tag"].replace("v", "") > now.replace("v", "") or latest["tag"][6:] > now[6:]:  # 比对版本号
-        logger.warning(f"版本检查 >>> 检测到新版本: {latest['tag']} ({latest['name']}) | 当前版本: {now}")
-        url = latest['url'].replace('%2b', '+')
-        logger.warning(f"版本检查 >>> 请前往更新: {url}")
-    else:
-        logger.info(f"版本检查 >>> 当前版本已是最新: {now}")
+    try:
+        latest = await get_latest_release("AxT-Team", "AxTBot")
+        if latest:
+            logger.debug(f"版本检查 >>> 最新版本: {latest['tag']} ({latest['name']})")
+            logger.debug(f"版本检查 >>> 发布时间: {latest['published_at']}")
+            url = latest['url'].replace('%2b', '+')
+            logger.debug(f"版本检查 >>> 发布页面: {url}")
+        else:
+            logger.error("版本检查 >>> 获取最新版本失败")
+            return
+        now = await get_version_compatible()
+        if latest["tag"].replace("v", "") > now.replace("v", "") or latest["tag"][6:] > now[6:]:  # 比对版本号
+            logger.warning(f"版本检查 >>> 检测到新版本: {latest['tag']} ({latest['name']}) | 当前版本: {now}")
+            url = latest['url'].replace('%2b', '+')
+            logger.warning(f"版本检查 >>> 请前往更新: {url}")
+        else:
+            logger.info(f"版本检查 >>> 当前版本已是最新: {now}")
+
+    except Exception as e:
+        logger.error(f"版本检查 >>> 错误: {e}")

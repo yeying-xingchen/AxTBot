@@ -2,12 +2,12 @@
 # AxTBot-v2.1
 
 一个基于 Python 的可扩展 Bot 框架。
-📖 完整文档请访问：[AxTBot-v2 | AxT Docs](https://docs.axtn.net/axtbot/v2.1/)
+📖 完整文档请访问：[AxTBot-v2 | AxT Docs](https://docs.axtn.net/axtbot/v2.1/guide/intro.html)
 
 ---
 
 > [!CAUTION]
-> ⚠️ 当前分支正在进行上线测试，可能存在问题。若存在问题请立即报告给管理员。
+> ⚠️ 当前分支正在进行灰度测试，可能存在问题。若存在问题请立即报告给管理员。
 
 ---
 
@@ -45,7 +45,7 @@ py -m venv .venv
 ### 3️⃣ 安装依赖
 
 ```bash
-pip install -e .
+pip install -e .[standard]
 ```
 
 ### 4️⃣ 配置环境变量
@@ -64,7 +64,7 @@ py main.py
 
 > 没错！现在你可以为你的 Bot 自行开发插件 ✨
 
-开发指南请访问：[快速开发 - AxTBot-v2 | AxT Docs](https://docs.axtn.net/axtbot/v2.1/Developer/)
+开发指南请访问：[快速开发 - AxTBot-v2 | AxT Docs](https://docs.axtn.net/axtbot/v2.1/develop/intro.html)
 
 ---
 
