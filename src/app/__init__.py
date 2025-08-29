@@ -14,7 +14,7 @@ async def startup_event(app: FastAPI):
     logger.debug("===========框架 startup 事件激活===========")
     logger.info("框架 前置处理 >>> 日志记录已启动")
     logger.info("框架 前置处理 >>> Tortoise ORM数据库已启动")
-    await load_config(config_path=Path("config.yaml"))
+    load_config(config_path=Path("config.yaml"))
     logger.debug(f"框架 前置处理 >>> 配置文件：{config}")
     logger.debug("------------------更新检查------------------")
     if config.Advanced.update:

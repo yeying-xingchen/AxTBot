@@ -139,9 +139,9 @@ def save_config(config: ConfigBase, path: Path):
     with open(path, 'w', encoding='utf-8') as f:
         f.write(yaml_content)
     
-    print(f"✅ 配置文件已生成: {path}\n请阅读以下文档：https://docs.axtn.net/AxTBot-v2.1/config/global.html 了解配置项含义")
+    print(f"✅ 配置文件已生成: {path}\n请阅读以下文档：https://docs.axtn.net/axtbot/v2.1/config/global.html 了解配置项含义")
 
-async def load_config(config_path: Path) -> ConfigBase:
+def load_config(config_path: Path) -> ConfigBase:
     """加载配置，如果不存在则引导创建"""
     # 情况1: 配置文件不存在
     if not config_path.exists():

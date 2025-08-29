@@ -19,7 +19,6 @@ async def hotlist_handler(event: MessageEventPayload):
                 "- acfun | AcFun热搜榜" + "\n" + \
                 "- weibo | 微博热搜榜" + "\n" + \
                 "- bilibili | 哔哩哔哩全站日榜" + "\n" + \
-                "- douyin | 抖音热搜榜" + "\n" + \
                 "- zhihu | 知乎热搜榜" + "\n" + \
                 "- douyin | 抖音热搜榜" + "\n" + \
                 "==========================" + "\n" + \
