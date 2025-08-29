@@ -2,7 +2,7 @@ name: 构建发布
 
 on:
   push:
-    branches: [Dev-AxTBot-v2.1]  # 在当前分支推送时触发
+    branches: [AxTBot-v2.1]  # 在当前分支推送时触发
 
 jobs:
   Build-And-Release:
