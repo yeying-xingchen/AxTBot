@@ -249,6 +249,8 @@ async def send_auto_reply(payload: AutoReplyPayload) -> None:
     if payload.media:
         base_payload.media = payload.media
         base_payload.msg_type = 7
+    if payload.image:
+        base_payload.image = payload.image
     if payload.group_id:
         if payload.markdown or payload.ark:
             base_payload.content = " "
@@ -275,9 +277,14 @@ async def upload_file(payload: MediaUploadPayload):
     """上传文件至QQ服务器，返回文件信息
 
     :param payload: MediaUploadPayload 上传文件的负载
-    :return: dict or None 上传成功返回文件，失败返回None
+    :return dict: 文件信息 or None
+    :return url: 传入原url 用于处理频道图片
 
-    详见：https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/send-receive/rich-media.html
+    ---
+
+    详见：
+    - 群聊/私聊：https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/send-receive/rich-media.html
+    - 频道/频私：https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/post_messages.html
 
     Powered by AxTn Network 2023-2025
     """
@@ -286,6 +293,10 @@ async def upload_file(payload: MediaUploadPayload):
         url = open_url + f"/v2/groups/{payload.event.group_id}/files"
     elif payload.event.event_type == "私信":
         url = open_url + f"/v2/users/{payload.event.user_id}/files"
+    elif payload.event.event_type in ["频道艾特", "私域频道", "频道私信"]:
+        url = payload.url  # 频道图片上传使用原url
+        return MediaPayload({"url": payload.url})
+
     else:
         logger.error(f"上传文件失败: 不支持的消息类型 {payload.event.event_type}")
         return None

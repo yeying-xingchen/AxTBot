@@ -380,6 +380,7 @@ class MediaPayload:
         self.file_info: str = self._payload.get('file_info', '')
         self.ttl: int = self._payload.get('ttl', 0)
         self.id: str = self._payload.get('id', '')
+        self.url: str = self._payload.get('url', '')
     
     def to_dict(self) -> Dict[str, Any]:
         if not self.file_info: return None
@@ -439,6 +440,7 @@ class AutoReplyPayload:
         self.markdown: MarkdownPayload = None
         self.ark: ArkPayload = None
         self.media: MediaPayload = None
+        self.image = None
         self.event_id: str = None
 
     def set_content(self, content):
@@ -455,6 +457,9 @@ class AutoReplyPayload:
 
     def set_media(self, media: MediaPayload = None):
         self.media = media
+        return self
+    def set_image(self, image: str = None):
+        self.image = image
         return self
 
 
@@ -474,6 +479,7 @@ class MessageSenderBasePayload:
         :param payload.keyboard: 按钮消息体
         :param payload.ark: Ark消息体
         :param payload.media: 媒体消息体
+        :param payload.image: 图片URL（仅适用于频道/频私发送图片）
 
         Powered by [AxTn Network](https://www.axtrk.com) 2023-2025
         """
@@ -494,6 +500,7 @@ class MessageSenderBasePayload:
         self.keyboard: KeyboardPayload = KeyboardPayload(self._raw_data.get('keyboard'))
         self.ark: ArkPayload = ArkPayload(self._raw_data.get('ark'))
         self.media: MediaPayload = MediaPayload(self._raw_data.get('media'))
+        self.image: str = self._raw_data.get('image', '')
 
     def to_dict(self) -> Dict[str, Any]:
         """将对象转换为字典"""
@@ -514,6 +521,8 @@ class MessageSenderBasePayload:
             result['ark'] = self.ark.to_dict()
         if self.media.file_uuid:
             result['media'] = self.media.to_dict()
+        if self.image:
+            result['image'] = self.image
 
         return result
 
@@ -542,13 +551,15 @@ class GuildMessageEvent(MessageEventPayload):
     def is_direct_message(self) -> bool:
         """是否是私信消息"""
         return self.t == "DIRECT_MESSAGE_CREATE"
-    async def reply(self, content: str, markdown: MarkdownPayload = None, msg_id: str = None, ark: ArkPayload = None):
+    async def reply(self, content: str, markdown: MarkdownPayload = None, msg_id: str = None, ark: ArkPayload = None, media: MediaPayload = None):
         """快捷回复方法"""
         auto_payload = AutoReplyPayload(self, self.t == "DIRECT_MESSAGE_CREATE").set_content(content)
         if markdown:
             auto_payload.set_markdown(markdown)
         if ark:
             auto_payload.set_ark(ark)
+        if media.url:
+            auto_payload.set_image(media.url)
         from src.Utils.MessageSender import send_auto_reply
         await send_auto_reply(auto_payload)
 
